@@ -1,0 +1,5 @@
+Estimated Average: 0.492242
+Theoretical Average: 0.500000
+Lambda: 2
+Number of Samples: 2000
+Histogram: 336,318,254,218,148,120,102,103,80,66,52,33,33,27,22,17,13,12,5,6,6,7,3,2,17

@@ -1,0 +1,7 @@
+*.o
+.vscode/
+.venv/
+*.out
+*.exe
+**/*.out
+main
