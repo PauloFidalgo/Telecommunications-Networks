@@ -48,7 +48,7 @@ def main() -> None:
                         bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue"), 
                         verticalalignment='top')
 
-                plot_filename = f"plots/{file.replace('.txt', '_histogram.png')}"
+                plot_filename = f"../plots/{file.replace('.txt', '_histogram.png')}"
                 plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
                 plt.close()  
                 
