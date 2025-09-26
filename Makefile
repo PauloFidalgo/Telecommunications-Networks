@@ -1,3 +1,8 @@
+# Makefile for Poisson Process Simulation Project
+# Authors: Paulo Fidalgo, Wagner Pedrosa
+# Date: 2025-09-22
+# Description: Builds the main simulation program with proper linking
+
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -O3 -I.
 LDFLAGS = -lm

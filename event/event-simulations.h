@@ -1,3 +1,15 @@
+/**
+ * @file event-simulations.h
+ * @author Paulo Fidalgo
+ * @author Wagner Pedrosa
+ * @brief Header file for Poisson process event simulation functions
+ * @version 0.1
+ * @date 2025-09-22
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #ifndef EVENT_SIMULATIONS_H
 #define EVENT_SIMULATIONS_H
 

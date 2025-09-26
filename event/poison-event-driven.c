@@ -1,3 +1,15 @@
+/**
+ * @file poison-event-driven.c
+ * @author Paulo Fidalgo
+ * @author Wagner Pedrosa
+ * @brief This file implements event-driven Poisson process simulation
+ * @version 0.1
+ * @date 2025-09-22
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

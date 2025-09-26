@@ -1,9 +1,24 @@
+/**
+ * @file poison-process.c
+ * @author Paulo Fidalgo
+ * @author Wagner Pedrosa
+ * @brief This file implements Poisson process simulation using direct sampling
+ * @version 0.1
+ * @date 2025-09-22
+ *
+ * @copyright Copyright (c) 2025
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "../models/linked-list.h"
 #include "../poison/poison.h"
 #include "../models/models.h"
+
+// Constant that defines the step in each iteration for the Poison Process
+#define DELTA_STEP 0.000001
 
 Result poison_process(int lambda, int number_of_events)
 {
@@ -17,7 +32,7 @@ Result poison_process(int lambda, int number_of_events)
     int n = round(v_max / delta_histogram);
 
     // This delta is the step in the process
-    double delta = 0.000001;
+    double delta = DELTA_STEP;
     double current_time = 0.0;
 
     int generated_events = 0;

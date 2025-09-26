@@ -2,7 +2,7 @@
  * @file poison.c
  * @author Paulo Fidalgo
  * @author Wagner Pedrosa
- * @brief
+ * @brief This file implements Poisson distribution random number generation
  * @version 0.1
  * @date 2025-09-22
  *
