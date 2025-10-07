@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "event/event-simulations.h"
+#include "system/system.h"
 
 void write_result_to_file(Result res, char filename[], int lambda, int n_samples)
 {
@@ -44,7 +45,74 @@ void write_result_to_file(Result res, char filename[], int lambda, int n_samples
     fclose(fptr);
 }
 
-int main(int argc, char *argv[])
+void write_erlang_c_to_file(ErlangCstat res, char filename[])
+{
+    FILE *fptr;
+    fptr = fopen(filename, "w");
+
+    if (fptr == NULL)
+    {
+        printf("Error opening file %s\n", filename);
+        return;
+    }
+
+    fprintf(fptr, "Estimated Probability of Delayed: %f\n", res.prob_pkt_delayed);
+    fprintf(fptr, "Estimated Probability of Delayed more than: %f\n", res.prob_pkt_delayed_more_ax);
+    fprintf(fptr, "Average Delay: %f\n", res.avg_delay_all_pkt);
+
+    fprintf(fptr, "Histogram: ");
+    for (int i = 0; i < res.histogram_size; i++)
+    {
+        fprintf(fptr, "%d", res.histogram[i]);
+        if (i < res.histogram_size - 1)
+        {
+            fprintf(fptr, ",");
+        }
+    }
+    fprintf(fptr, "\n");
+
+    fclose(fptr);
+}
+
+int main() {
+    int lambda = 200;
+    int number_events = 100000;
+    float avg_time = 0.008;
+
+
+    int channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int num_channels = sizeof(channels) / sizeof(int);
+
+    float thresholds[] = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0};
+    int num_thresholds = sizeof(channels) / sizeof(float);
+
+    /*
+    for (int i = 0; i < num_channels; i++) {
+        float blk = erlang_b_system(channels[i], lambda, avg_time, number_events);
+        printf("{%d: %f} - ", i + 1, blk);
+    }
+    */
+
+    for (int i = 0; i < num_channels; i++) {
+        for (int j = 0; j < num_thresholds; j++) {
+            ErlangCstat erlang_c_res = erlang_c_system(channels[i], lambda, avg_time, number_events, thresholds[j]);
+
+            char filename_event[100];
+            sprintf(filename_event, "outputs/erlang_c/num_channels_%d_threshold_%.3f.txt", channels[i], thresholds[j]);
+            write_erlang_c_to_file(erlang_c_res, filename_event);
+        }
+    }
+
+    return 0;
+
+    //printf("Block Probability: %f\n", block_prob);
+    //printf("Avg delayed: %f\n", erlang_c_res.prob_pkt_delayed);
+    //printf("Avg delayed more than %f: %f\n", delay_threshold, erlang_c_res.prob_pkt_delayed_more_ax);
+    //printf("Average Delay: %f\n", erlang_c_res.avg_delay_all_pkt);
+}
+
+/*
+int main2(int argc, char *argv[])
 {
 
     int lambdas[] = {2, 5, 10, 20};
@@ -80,3 +148,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/

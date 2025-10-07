@@ -1,0 +1,4 @@
+Estimated Probability of Delayed: 0.277670
+Estimated Probability of Delayed more than: 0.000000
+Average Delay: 0.005787
+Histogram: 4429,3667,3080,2645,2211,1899,1536,1252,1119,930,788,680,542,487,418,357,283,241,184,132,132,122,119,82,432

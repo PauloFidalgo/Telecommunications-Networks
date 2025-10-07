@@ -14,7 +14,7 @@
 #include <math.h>
 #include <time.h>
 
-double next_poison(int lambda)
+double next_poison(double x)
 {
     double u;
     do
@@ -22,5 +22,5 @@ double next_poison(int lambda)
         u = (double)rand() / (double)RAND_MAX;
     } while (u == 0.0 || u == 1.0);
 
-    return -(1.0 / lambda) * log(u);
+    return (-x) * log(u);
 }

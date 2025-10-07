@@ -56,6 +56,30 @@ list *__add(list *pointer, int n_type, double n_time)
     }
 }
 
+list *__add_fifo(list *pointer, int n_type, double n_time)
+{
+    list *new_node = (list *)malloc(sizeof(list));
+    new_node->type = n_type;
+    new_node->time = n_time;
+    new_node->next = NULL;
+
+    if (pointer == NULL)
+    {
+        return new_node;
+    }
+    else
+    {
+        list *head = pointer;  
+        while (pointer->next != NULL)
+        {
+            pointer = pointer->next;
+        }
+        pointer->next = new_node;
+        
+        return head; 
+    }
+}
+
 // Function that prints in the screen all the element of the linked list
 void __print(list *pointer)
 {

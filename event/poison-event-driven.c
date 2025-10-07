@@ -34,7 +34,7 @@ Result poison_event_driven_simulation(int lambda, int number_of_events)
 
     for (int i = 0; i < number_of_events; i++)
     {
-        double c = next_poison(lambda);
+        double c = next_poison(1.0 / lambda);
         sum += c;
 
         int bin_index = (int)(c / delta);

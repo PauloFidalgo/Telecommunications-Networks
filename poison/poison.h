@@ -13,6 +13,6 @@
 #ifndef POISON_H
 #define POISON_H
 
-double next_poison(int lambda);
+double next_poison(double x);
 
 #endif // POISON_H

@@ -10,6 +10,7 @@ typedef struct list
 
 list *__remove(list *pointer);
 list *__add(list *pointer, int n_type, double n_time);
+list *__add_fifo(list *pointer, int n_type, double n_time);
 void __print(list *pointer);
 
 #define ARRIVAL 1
