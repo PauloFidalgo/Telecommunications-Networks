@@ -79,20 +79,19 @@ int main() {
     int number_events = 100000;
     float avg_time = 0.008;
 
-    int channels[] = {2, 3, 4, 5};
+    int channels[] = {1, 2, 3, 4, 5};
     int num_channels = sizeof(channels) / sizeof(int);
 
     float thresholds[] = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0};
     int num_thresholds = sizeof(channels) / sizeof(float);
 
-    /*
+    // Test Erlang B system
     for (int i = 0; i < num_channels; i++) {
         float blk = erlang_b_system(channels[i], lambda, avg_time, number_events);
         printf("{%d: %f} - ", i + 1, blk);
     }
-    */
 
-    /*
+    // Test Erlang C system
     for (int i = 0; i < num_channels; i++) {
         for (int j = 0; j < num_thresholds; j++) {
             ErlangCstat erlang_c_res = erlang_c_system(channels[i], lambda, avg_time, number_events, thresholds[j]);
@@ -102,39 +101,37 @@ int main() {
             write_erlang_c_to_file(erlang_c_res, filename_event);
         }
     }
-    */
 
-    // Check that is the same as Blocking
-    /*
+    // Check that Erlang Generic with queue = 0 is the same as Erlang B
+    // Run 1 at a Time to get same random values
     for (int i = 0; i < num_channels; i++) {
             ErlangGenStat same_blk = erlang_gen_system(channels[i], lambda, avg_time, number_events, 0.01, 0);
             float blk = erlang_b_system(channels[i], lambda, avg_time, number_events);
             printf("{%d: %f}\n", channels[i], same_blk.block_probability);
             printf("{%d: %f}\n", channels[i], blk);
     }
-    */
 
-    // Check is the same as Infinite Queue
-    /*
-    //ErlangGenStat same_infinite = erlang_gen_system(3, lambda, avg_time, number_events, 0.01, 100000);
-    ErlangCstat erlang_c = erlang_c_system(3, lambda, avg_time, number_events, 0.01);
+    // Check that Erlang Generic with queue = infinite is the the same as Erlang C
+    // Run 1 at a Time to get same random values
+    ErlangGenStat same_infinite = erlang_gen_system(3, lambda, avg_time, number_events, 0.01, 100000);
+    ErlangCstat same_infinite_erl = erlang_c_system(3, lambda, avg_time, number_events, 0.01);
 
-    printf("Estimated Probability of Delayed: %f\n", erlang_c.prob_pkt_delayed);
-    printf("Estimated Probability of Delayed more than: %f\n", erlang_c.prob_pkt_delayed_more_ax);
-    printf("Average Delay: %f\n", erlang_c.avg_delay_all_pkt);
+    printf("Estimated Probability of Delayed: {%f, %f}\n", same_infinite.prob_pkt_delayed, same_infinite_erl.prob_pkt_delayed);
+    printf("Estimated Probability of Delayed more than: {%f, %f}\n", same_infinite.prob_pkt_delayed_more_ax, same_infinite_erl.prob_pkt_delayed_more_ax);
+    printf("Average Delay: {%f, %f}\n", same_infinite.avg_delay_all_pkt, same_infinite_erl.avg_delay_all_pkt);
 
-    printf("Histogram: ");
-    for (int i = 0; i < erlang_c.histogram_size; i++)
-    {
-        printf("%d", erlang_c.histogram[i]);
-        if (i < erlang_c.histogram_size - 1)
-        {
-            printf(",");
-        }
+    // Run Erlang Generic for different capacities
+    for (int capacity = 0; capacity <= 25; capacity += 5) {
+        ErlangGenStat same_infinite = erlang_gen_system(1, lambda, avg_time, number_events, 1.0, capacity);
+
+        printf("-------------------------------\n");
+        printf("Result for capacity = %d\n", capacity);
+        printf("Estimated Probability of Delayed: %f\n", same_infinite.prob_pkt_delayed);
+        printf("Estimated Probability of Delayed more than: %f\n", same_infinite.prob_pkt_delayed_more_ax);
+        printf("Average Delay: %f\n", same_infinite.avg_delay_all_pkt);
+        printf("Estimated Block Probability: %f\n", same_infinite.block_probability);
+        printf("-------------------------------\n");
     }
-
-    printf("\n");
-    */
 
     // Detect the Length of the Queue for each Channel Capacity in order to get 1% Blocking Probability
     for (int i = 0; i < num_channels; i++) {
@@ -152,6 +149,7 @@ int main() {
     return 0;
 }
 
+// Old Main with the tests conducted in Part 1
 /*
 int main(int argc, char *argv[])
 {

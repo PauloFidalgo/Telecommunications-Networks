@@ -1,0 +1,32 @@
+
+\begin{table}[htbp]
+\centering
+\caption{Erlang Generic vs Theoretical Comparison (1 Channel)}
+\label{tab:erlang_comparison}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Queue}} & \multicolumn{2}{c|}{\textbf{P(Delay)}} & \multicolumn{2}{c|}{\textbf{Avg Delay (ms)}} & \multicolumn{2}{c|}{\textbf{Block Probability}} \\
+\cline{2-7}
+\textbf{Capacity} & \textbf{Sim.} & \textbf{Theo.} & \textbf{Sim.} & \textbf{Theo.} & \textbf{Sim.} & \textbf{Theo.} \\
+\hline
+0 & 0.000000 & 0.000000 & 0.000 & 0.000 & 0.615570 & 0.615385 \\
+\hline
+5 & 0.587570 & 0.587273 & 30.811 & 29.709 & 0.389140 & 0.389510 \\
+\hline
+10 & 0.618710 & 0.621524 & 68.172 & 67.170 & 0.379530 & 0.376337 \\
+\hline
+15 & 0.619460 & 0.624670 & 107.314 & 106.736 & 0.380410 & 0.375127 \\
+\hline
+20 & 0.624100 & 0.624968 & 146.785 & 146.675 & 0.375780 & 0.375012 \\
+\hline
+25 & 0.626820 & 0.624997 & 185.597 & 186.668 & 0.373130 & 0.375001 \\
+\hline
+
+\end{tabular}
+\begin{tablenotes}
+\small
+\item System parameters: $\lambda = 200$ events/ms, $\mu = 125.0$ events/ms, $\rho = 1.60$
+\item Capacity 0 corresponds to Erlang-B (blocking system)
+\item Capacity $> 0$ corresponds to finite capacity queueing system (M/M/1/K)
+\end{tablenotes}
+\end{table}

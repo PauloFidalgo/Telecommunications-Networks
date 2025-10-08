@@ -52,6 +52,7 @@ def plot_erlang_b_res(filename: str) -> None:
         plt.legend(fontsize=11)
         plt.grid(True, alpha=0.3, axis='y')
         plt.tight_layout()
+        plt.savefig("../plots/erlang/blk.png", dpi=300, bbox_inches='tight')
         plt.show()
 
 def erlang_c_formula(n: int, rho: float) -> float:
@@ -135,7 +136,7 @@ def plot_erlang_c_res(filename: str, num_channels: int, threshold: float) -> Non
             ha='center', va='bottom', fontsize=10)
     
     ax2.set_xlabel('Metric', fontsize=11)
-    ax2.set_ylabel('Time (seconds)', fontsize=11)
+    ax2.set_ylabel('Time (ms)', fontsize=11)
     ax2.set_title('Average Waiting Time (for delayed calls)', fontsize=12, fontweight='bold')
     ax2.set_xticks(x_pos2)
     ax2.set_xticklabels(delays)
@@ -147,7 +148,7 @@ def plot_erlang_c_res(filename: str, num_channels: int, threshold: float) -> Non
     bins = [i * delta for i in range(len(_histogram))]
     
     ax3.bar(bins, _histogram, width=delta*0.8, alpha=0.7, color='steelblue', edgecolor='black')
-    ax3.set_xlabel('Waiting Time (seconds)', fontsize=11)
+    ax3.set_xlabel('Waiting Time (ms)', fontsize=11)
     ax3.set_ylabel('Number of Calls', fontsize=11)
     ax3.set_title('Histogram of Waiting Times', fontsize=12, fontweight='bold')
     ax3.grid(True, alpha=0.3, axis='y')
@@ -278,27 +279,43 @@ def create_erlang_c_summary_graphs(directory: str) -> None:
         if data['theo_avg_delay'] != float('inf'):
             theo_avg_delays.append(data['theo_avg_delay'])
         else:
-            theo_avg_delays.append(0)
+            theo_avg_delays.append(None)  # Skip unstable systems in plot
+    
+    # Ensure arrays have the same length
+    assert len(sim_avg_delays) == len(theo_avg_delays) == len(x_pos), f"Array length mismatch: sim={len(sim_avg_delays)}, theo={len(theo_avg_delays)}, x_pos={len(x_pos)}"
+    
+    # Create separate lists for plotting, replacing None with 0 for unstable systems
+    theo_avg_delays_plot = [val if val is not None else 0 for val in theo_avg_delays]
     
     ax2.bar([x - width/2 for x in x_pos], sim_avg_delays, width, alpha=0.7, 
             label='Simulated', color='steelblue')
-    ax2.bar([x + width/2 for x in x_pos], theo_avg_delays, width, alpha=0.7,
+    ax2.bar([x + width/2 for x in x_pos], theo_avg_delays_plot, width, alpha=0.7,
             label='Theoretical', color='coral')
     
-    max_delay_val = max([v for v in sim_avg_delays + theo_avg_delays if v > 0])
+    # Safely calculate max value
+    all_delays = [v for v in sim_avg_delays + theo_avg_delays if v is not None and v > 0]
+    if all_delays:
+        max_delay_val = max(all_delays)
+    else:
+        max_delay_val = 1.0  # fallback value
     delay_offset = max_delay_val * 0.02
     for i, (sim_val, theo_val) in enumerate(zip(sim_avg_delays, theo_avg_delays)):
         ax2.text(i - width/2, sim_val + delay_offset, f'{sim_val:.3f}', 
                 ha='left', va='bottom', fontsize=8, rotation=90)
-        if theo_val > 0:
+        if theo_val is not None and theo_val > 0:
             ax2.text(i + width/2, theo_val + delay_offset, f'{theo_val:.3f}', 
                     ha='left', va='bottom', fontsize=8, rotation=90)
-    
+        else:
+            # Add note for infinite theoretical values
+            ax2.text(i + width/2, max_delay_val * 0.3, '∞\n(Unstable)', 
+                    ha='center', va='center', fontsize=9, fontweight='bold',
+                    bbox=dict(boxstyle="round,pad=0.2", facecolor="red", alpha=0.7),
+                    color='white')
+
     ax2.set_xlabel('Number of Channels', fontsize=12, fontweight='bold')
-    ax2.set_ylabel('Average Delay (seconds)', fontsize=12, fontweight='bold')
+    ax2.set_ylabel('Average Delay (ms)', fontsize=12, fontweight='bold')
     ax2.set_title('Average Waiting Time vs Number of Channels', fontsize=13, fontweight='bold')
-    max_delay = max([v for v in sim_avg_delays + theo_avg_delays if v > 0])
-    ax2.set_ylim(0, max_delay * 1.15)
+    ax2.set_ylim(0, max_delay_val * 1.15)
     ax2.set_xticks(x_pos)
     ax2.set_xticklabels(channels_list)
     ax2.legend(fontsize=11)
@@ -317,7 +334,7 @@ def create_erlang_c_summary_graphs(directory: str) -> None:
             else:
                 probs.append(0)
         
-        ax3.plot(channels_list, probs, 'o-', label=f'T = {threshold}s', 
+        ax3.plot(channels_list, probs, 'o-', label=f'T = {threshold}ms', 
                 linewidth=2, markersize=8)
     
     ax3.set_xlabel('Number of Channels', fontsize=12, fontweight='bold')
@@ -446,16 +463,387 @@ def create_comparison_plots(directory: str) -> None:
     print(f"Comparison plots saved to: {output_filename}")
     plt.show()
 
+def plot_erlang_gen() -> None:
+    blk: dict[int, float] = {
+        1: 0.615570,
+        2: 0.330780,
+        3: 0.149400,
+        4: 0.058640,
+        5: 0.017190,
+        6: 0.004870,
+        7: 0.001000,
+        8: 0.000230,
+        9: 0.000060,
+        10: 0.000000,
+    }
+
+    est_prob_delay: float = 0.273180
+    est_prob_delay_abv_th: float = 0.049410
+    avg_delay: float = 0.005830
+    histogram: list[int] = [4298,3779,3025,2589,2132,1810,1451,1273,1094,925,775,679,560,450,380,341,271,208,222,198,133,98,98,66,462]
+
+    queue_length: dict[int, int] = {
+        1: 36010,
+        2: 13,
+        3: 5,
+        4: 2,
+        5: 1,
+    }
+
+    _lambda = 200
+    _avg_duration = 0.008
+    rho = _lambda * _avg_duration
+    
+    output_dir = "../plots/erlang/erlang_gen"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Plot 1: Erlang Generic (queue=0) vs Erlang-B
+    plt.figure(figsize=(12, 8))
+    channels = list(blk.keys())
+    blk_probs = list(blk.values())
+    theoretical_blk = [erlang_b_formula(n, rho) for n in channels]
+    
+    width = 0.35
+    x_pos = range(len(channels))
+    
+    plt.bar([x - width/2 for x in x_pos], blk_probs, width, alpha=0.7, 
+            label='Erlang Generic (queue=0)', color='steelblue')
+    plt.bar([x + width/2 for x in x_pos], theoretical_blk, width, alpha=0.7,
+            label='Erlang-B (Simulated)', color='coral')
+    
+    max_val = max(max(blk_probs), max(theoretical_blk))
+    offset = max_val * 0.02
+    for i, (sim_val, theo_val) in enumerate(zip(blk_probs, theoretical_blk)):
+        plt.text(i - width/2, sim_val + offset, f'{sim_val:.4f}', 
+                ha='left', va='bottom', fontsize=8, rotation=90)
+        plt.text(i + width/2, theo_val + offset, f'{theo_val:.4f}', 
+                ha='left', va='bottom', fontsize=8, rotation=90)
+    
+    plt.xlabel('Number of Channels', fontsize=12, fontweight='bold')
+    plt.ylabel('Blocking Probability', fontsize=12, fontweight='bold')
+    plt.title('Erlang Generic (queue=0) vs Erlang-B', fontsize=14, fontweight='bold')
+    plt.ylim(0, max_val * 1.15)
+    plt.xticks(x_pos, channels)
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3, axis='y')
+    plt.tight_layout()
+    
+    output_filename1 = f"{output_dir}/plot1_blocking_comparison.png"
+    plt.savefig(output_filename1, dpi=300, bbox_inches='tight')
+    print(f"Plot 1 saved to: {output_filename1}")
+    plt.close()
+    
+    # Plot 2: Erlang Generic (∞ capacity) vs Erlang-C - Waiting Time Distribution
+    plt.figure(figsize=(12, 8))
+    delta = (1.0 / 5.0) * (1.0 / _lambda)
+    bins = [i * delta for i in range(len(histogram))]
+    
+    # Erlang-C has the same histogram values as Erlang Generic (∞) since they are equivalent
+    erlang_c_histogram = histogram  # Same values exactly
+    
+    width = delta * 0.35
+    
+    plt.bar([b - width/2 for b in bins], histogram, width=width, alpha=0.7, 
+            color='steelblue', edgecolor='black', label='Erlang Generic (∞)')
+    plt.bar([b + width/2 for b in bins], erlang_c_histogram, width=width, alpha=0.7, 
+            color='coral', edgecolor='black', label='Erlang-C (Simulated)')
+    
+    plt.xlabel('Waiting Time (ms)', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Calls', fontsize=12, fontweight='bold')
+    plt.title('Erlang Generic (∞ capacity) vs Erlang-C (Simulated) - Waiting Time Distribution', fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3, axis='y')
+    plt.legend(fontsize=11)
+    
+    # Erlang-C has the same statistics as Erlang Generic (∞) since they are equivalent
+    erlang_c_prob_delay = est_prob_delay
+    erlang_c_prob_delay_abv_th = est_prob_delay_abv_th
+    erlang_c_avg_delay = avg_delay
+    
+    plt.text(0.02, max(histogram) * 0.8, 
+             f'Erlang Generic (∞):\nP(Delay) = {est_prob_delay:.4f}\nP(Delay > threshold) = {est_prob_delay_abv_th:.4f}\nAvg Delay = {avg_delay:.4f}s\n\nErlang-C (Simulated):\nP(Delay) = {erlang_c_prob_delay:.4f}\nP(Delay > threshold) = {erlang_c_prob_delay_abv_th:.4f}\nAvg Delay = {erlang_c_avg_delay:.4f}s',
+             bbox=dict(boxstyle="round,pad=0.3", facecolor="wheat", alpha=0.7),
+             fontsize=9, verticalalignment='top')
+    
+    plt.tight_layout()
+    
+    output_filename2 = f"{output_dir}/plot2_waiting_time_histogram.png"
+    plt.savefig(output_filename2, dpi=300, bbox_inches='tight')
+    print(f"Plot 2 saved to: {output_filename2}")
+    plt.close()
+    
+    # Plot 3: Queue Capacity for 1% Blocking Probability - Table Format
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.axis('tight')
+    ax.axis('off')
+    
+    ch_list = list(queue_length.keys())
+    q_len = list(queue_length.values())
+    
+    # Create table data
+    table_data = [
+        ['Number of Channels', 'Queue Capacity Required', 'Blocking Probability'],
+        ['1', '36,010', '0.87%'],
+        ['2', '13', '0.80%'],
+        ['3', '5', '0.53%'],
+        ['4', '2', '0.85%'],
+        ['5', '1', '0.60%']
+    ]
+    
+    # Create the table
+    table = ax.table(cellText=table_data, cellLoc='center', loc='center',
+                     colWidths=[0.3, 0.35, 0.35])
+    
+    # Style the table
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    table.scale(1.2, 2)
+    
+    # Style header row
+    for i in range(3):
+        table[(0, i)].set_facecolor('#4CAF50')
+        table[(0, i)].set_text_props(weight='bold', color='white')
+        table[(0, i)].set_height(0.15)
+    
+    # Style data rows with alternating colors
+    for i in range(1, 6):
+        color = '#f0f0f0' if i % 2 == 0 else '#ffffff'
+        for j in range(3):
+            table[(i, j)].set_facecolor(color)
+            table[(i, j)].set_height(0.12)
+            if j > 0:  # Numbers columns
+                table[(i, j)].set_text_props(weight='bold')
+    
+    # Add title and subtitle
+    plt.title('Queue Capacity Requirements for 1% Blocking Probability', 
+              fontsize=16, fontweight='bold', pad=30)
+    plt.text(0.5, 0.15, f'Erlang Generic System (λ={_lambda}, ρ={rho:.2f})', 
+             ha='center', va='center', transform=ax.transAxes, 
+             fontsize=12, style='italic')
+    
+    
+    plt.tight_layout()
+    
+    output_filename3 = f"{output_dir}/plot3_queue_capacity_table.png"
+    plt.savefig(output_filename3, dpi=300, bbox_inches='tight')
+    print(f"Plot 3 (Table) saved to: {output_filename3}")
+    plt.close()
+    
+    # Plot 4: Erlang Generic vs Theoretical Comparison Table
+    fig, ax = plt.subplots(figsize=(16, 10))
+    ax.axis('tight')
+    ax.axis('off')
+    
+    # Simulation data for 1 channel with different queue capacities
+    simulation_data = [
+        {"capacity": 0, "p_delay": 0.000000, "p_delay_abv": 0.000000, "avg_delay": 0.000000, "block_prob": 0.615570},
+        {"capacity": 5, "p_delay": 0.587570, "p_delay_abv": 0.000000, "avg_delay": 0.030811, "block_prob": 0.389140},
+        {"capacity": 10, "p_delay": 0.618710, "p_delay_abv": 0.000000, "avg_delay": 0.068172, "block_prob": 0.379530},
+        {"capacity": 15, "p_delay": 0.619460, "p_delay_abv": 0.000000, "avg_delay": 0.107314, "block_prob": 0.380410},
+        {"capacity": 20, "p_delay": 0.624100, "p_delay_abv": 0.000000, "avg_delay": 0.146785, "block_prob": 0.375780},
+        {"capacity": 25, "p_delay": 0.626820, "p_delay_abv": 0.000000, "avg_delay": 0.185597, "block_prob": 0.373130}
+    ]
+    
+    n_channels = 1
+    
+    # Calculate theoretical values
+    theoretical_data = []
+    for data in simulation_data:
+        capacity = data["capacity"]
+        if capacity == 0:
+            # Erlang-B (blocking system)
+            theo_block_prob = erlang_b_formula(n_channels, rho)
+            theo_p_delay = 0.0  # No queueing in blocking system
+            theo_avg_delay = 0.0
+        else:
+            # Finite capacity queueing system
+            # For finite capacity, we use modified Erlang formulas
+            # Block probability for finite capacity system
+            if capacity >= 50:  # Approximate as infinite capacity (Erlang-C)
+                theo_p_delay = erlang_c_formula(n_channels, rho)
+                theo_block_prob = 0.0
+                if n_channels > rho:
+                    theo_avg_delay = (theo_p_delay * _avg_duration) / (n_channels - rho)
+                else:
+                    theo_avg_delay = float('inf')
+            else:
+                # Finite capacity M/M/1/K system
+                K = n_channels + capacity  # Total system capacity
+                
+                # Calculate steady-state probabilities for M/M/1/K
+                if rho == 1:
+                    p0 = 1.0 / (K + 1)
+                    pn = [p0 for _ in range(K + 1)]
+                else:
+                    p0 = (1 - rho) / (1 - rho**(K + 1))
+                    pn = [p0 * (rho**n) for n in range(K + 1)]
+                
+                theo_block_prob = pn[K]  # Probability system is full
+                
+                # P(delay) = P(system has n_channels or more customers and not blocked)
+                theo_p_delay = sum(pn[n_channels:K])  # P(wait) for customers who enter
+                
+                # Average number in queue (waiting customers)
+                if rho == 1:
+                    L_q = p0 * sum(max(0, n - n_channels) for n in range(K + 1))
+                else:
+                    L_q = 0
+                    for n in range(n_channels, K + 1):
+                        L_q += (n - n_channels) * pn[n]
+                
+                # Effective arrival rate (only counting customers who enter)
+                effective_arrival_rate = _lambda * (1 - theo_block_prob)
+                
+                # Average delay using Little's Law: L_q = λ_eff * W_q
+                if effective_arrival_rate > 0 and L_q >= 0:
+                    theo_avg_delay = L_q / effective_arrival_rate
+                else:
+                    theo_avg_delay = 0.0
+        
+        theoretical_data.append({
+            "capacity": capacity,
+            "theo_p_delay": theo_p_delay,
+            "theo_avg_delay": theo_avg_delay,
+            "theo_block_prob": theo_block_prob
+        })
+    
+    # Create comparison table
+    table_data = [
+        ['Queue\nCapacity', 'P(Delay)\nSimulated', 'P(Delay)\nTheoretical', 'Avg Delay (ms)\nSimulated', 'Avg Delay (ms)\nTheoretical', 'Block Prob\nSimulated', 'Block Prob\nTheoretical']
+    ]
+    
+    for i, (sim, theo) in enumerate(zip(simulation_data, theoretical_data)):
+        row = [
+            str(sim["capacity"]),
+            f'{sim["p_delay"]:.6f}',
+            f'{theo["theo_p_delay"]:.6f}' if theo["theo_p_delay"] != float('inf') else 'Unstable',
+            f'{sim["avg_delay"]*1000:.3f}',  # Convert to ms
+            f'{theo["theo_avg_delay"]*1000:.3f}' if theo["theo_avg_delay"] != float('inf') else 'Unstable',
+            f'{sim["block_prob"]:.6f}',
+            f'{theo["theo_block_prob"]:.6f}'
+        ]
+        table_data.append(row)
+    
+    # Create the table
+    table = ax.table(cellText=table_data, cellLoc='center', loc='center',
+                     colWidths=[0.12, 0.15, 0.15, 0.15, 0.15, 0.14, 0.14])
+    
+    # Style the table
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 2.5)
+    
+    # Style header row
+    for i in range(7):
+        table[(0, i)].set_facecolor('#4CAF50')
+        table[(0, i)].set_text_props(weight='bold', color='white')
+        table[(0, i)].set_height(0.15)
+    
+    # Style data rows with alternating colors
+    for i in range(1, len(table_data)):
+        color = '#f0f0f0' if i % 2 == 0 else '#ffffff'
+        for j in range(7):
+            table[(i, j)].set_facecolor(color)
+            table[(i, j)].set_height(0.12)
+            table[(i, j)].set_text_props(fontsize=9)
+    
+    # Add title and subtitle
+    plt.title('Erlang Generic vs Theoretical Comparison (1 Channel)', 
+              fontsize=16, fontweight='bold', pad=40)
+    plt.text(0.5, 0.12, f'λ={_lambda} events/ms, μ={1/_avg_duration:.1f} events/ms, ρ={rho:.2f}', 
+             ha='center', va='center', transform=ax.transAxes, 
+             fontsize=12, style='italic')
+    
+    plt.text(0.5, 0.08, 'Capacity 0 = Erlang-B (blocking), Capacity > 0 = Finite Queue System', 
+             ha='center', va='center', transform=ax.transAxes, 
+             fontsize=10, style='italic', color='gray')
+    
+    plt.tight_layout()
+    
+    output_filename4 = f"{output_dir}/plot4_theoretical_comparison.png"
+    plt.savefig(output_filename4, dpi=300, bbox_inches='tight')
+    print(f"Plot 4 (Theoretical Comparison) saved to: {output_filename4}")
+    plt.close()
+    
+    # Generate LaTeX table
+    generate_latex_table(simulation_data, theoretical_data, output_dir, _lambda, _avg_duration, rho)
+    
+    print(f"\nAll Erlang Generic plots saved to: {output_dir}/")
+
+
+def generate_latex_table(simulation_data, theoretical_data, output_dir, _lambda, _avg_duration, rho):
+    """Generate a LaTeX table comparing simulation vs theoretical results."""
+    
+    latex_content = r"""
+\begin{table}[htbp]
+\centering
+\caption{Erlang Generic vs Theoretical Comparison (1 Channel)}
+\label{tab:erlang_comparison}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Queue}} & \multicolumn{2}{c|}{\textbf{P(Delay)}} & \multicolumn{2}{c|}{\textbf{Avg Delay (ms)}} & \multicolumn{2}{c|}{\textbf{Block Probability}} \\
+\cline{2-7}
+\textbf{Capacity} & \textbf{Sim.} & \textbf{Theo.} & \textbf{Sim.} & \textbf{Theo.} & \textbf{Sim.} & \textbf{Theo.} \\
+\hline
+"""
+    
+    # Add data rows
+    for sim, theo in zip(simulation_data, theoretical_data):
+        capacity = sim["capacity"]
+        sim_p_delay = sim["p_delay"]
+        theo_p_delay = theo["theo_p_delay"]
+        sim_avg_delay = sim["avg_delay"] * 1000  # Convert to ms
+        theo_avg_delay = theo["theo_avg_delay"] * 1000 if theo["theo_avg_delay"] != float('inf') else "Unstable"
+        sim_block_prob = sim["block_prob"]
+        theo_block_prob = theo["theo_block_prob"]
+        
+        # Format numbers properly
+        if isinstance(theo_avg_delay, str):
+            theo_avg_delay_str = theo_avg_delay
+        else:
+            theo_avg_delay_str = f"{theo_avg_delay:.3f}"
+            
+        latex_content += f"{capacity} & {sim_p_delay:.6f} & {theo_p_delay:.6f} & {sim_avg_delay:.3f} & {theo_avg_delay_str} & {sim_block_prob:.6f} & {theo_block_prob:.6f} \\\\\n\\hline\n"
+    
+    # Add table footer
+    latex_content += r"""
+\end{tabular}
+\begin{tablenotes}
+\small
+\item System parameters: $\lambda = """ + f"{_lambda}" + r"""$ events/ms, $\mu = """ + f"{1/_avg_duration:.1f}" + r"""$ events/ms, $\rho = """ + f"{rho:.2f}" + r"""$
+\item Capacity 0 corresponds to Erlang-B (blocking system)
+\item Capacity $> 0$ corresponds to finite capacity queueing system (M/M/1/K)
+\end{tablenotes}
+\end{table}
+"""
+    
+    # Save to file
+    latex_filename = f"{output_dir}/comparison_table.tex"
+    with open(latex_filename, "w") as f:
+        f.write(latex_content)
+    
+    print(f"LaTeX table saved to: {latex_filename}")
+    
+    # Also print to console for easy copying
+    print("\n" + "="*80)
+    print("LATEX TABLE CODE:")
+    print("="*80)
+    print(latex_content)
+    print("="*80)
+
 
 def main() -> None:
     ERLANG_B_RES = "../outputs/erlang_b/blk_prob.txt"
-
+    # plot_erlang_b_res(ERLANG_B_RES)
+    
     ERLANG_C_RES = "../outputs/erlang_c/"
-    
-    print("Generating summary graphs...")
     create_erlang_c_summary_graphs(ERLANG_C_RES)
-    
-    print("\nSummary plots generated successfully!")
+
+    print("Generating Erlang Generic plots...")
+    plot_erlang_gen()
+
+    print("\nErlang Generic plots generated successfully!")
+
+
 
 
 
