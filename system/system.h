@@ -3,5 +3,6 @@
 
 float erlang_b_system(int channels, int lambda, float avg_duration, int n_samples);
 ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_samples, float delay_threshold);
+ErlangGenStat erlang_gen_system(int channels, int lambda, float avg_duration, int n_samples, float delay_threshold, int queue_capacity);
 
 #endif // SYSTEM_H

@@ -79,8 +79,7 @@ int main() {
     int number_events = 100000;
     float avg_time = 0.008;
 
-
-    int channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int channels[] = {2, 3, 4, 5};
     int num_channels = sizeof(channels) / sizeof(int);
 
     float thresholds[] = {0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0};
@@ -93,6 +92,7 @@ int main() {
     }
     */
 
+    /*
     for (int i = 0; i < num_channels; i++) {
         for (int j = 0; j < num_thresholds; j++) {
             ErlangCstat erlang_c_res = erlang_c_system(channels[i], lambda, avg_time, number_events, thresholds[j]);
@@ -102,17 +102,58 @@ int main() {
             write_erlang_c_to_file(erlang_c_res, filename_event);
         }
     }
+    */
+
+    // Check that is the same as Blocking
+    /*
+    for (int i = 0; i < num_channels; i++) {
+            ErlangGenStat same_blk = erlang_gen_system(channels[i], lambda, avg_time, number_events, 0.01, 0);
+            float blk = erlang_b_system(channels[i], lambda, avg_time, number_events);
+            printf("{%d: %f}\n", channels[i], same_blk.block_probability);
+            printf("{%d: %f}\n", channels[i], blk);
+    }
+    */
+
+    // Check is the same as Infinite Queue
+    /*
+    //ErlangGenStat same_infinite = erlang_gen_system(3, lambda, avg_time, number_events, 0.01, 100000);
+    ErlangCstat erlang_c = erlang_c_system(3, lambda, avg_time, number_events, 0.01);
+
+    printf("Estimated Probability of Delayed: %f\n", erlang_c.prob_pkt_delayed);
+    printf("Estimated Probability of Delayed more than: %f\n", erlang_c.prob_pkt_delayed_more_ax);
+    printf("Average Delay: %f\n", erlang_c.avg_delay_all_pkt);
+
+    printf("Histogram: ");
+    for (int i = 0; i < erlang_c.histogram_size; i++)
+    {
+        printf("%d", erlang_c.histogram[i]);
+        if (i < erlang_c.histogram_size - 1)
+        {
+            printf(",");
+        }
+    }
+
+    printf("\n");
+    */
+
+    // Detect the Length of the Queue for each Channel Capacity in order to get 1% Blocking Probability
+    for (int i = 0; i < num_channels; i++) {
+        int queue_size = 0;
+        ErlangGenStat res = erlang_gen_system(channels[i], lambda, avg_time, number_events, 1.0, queue_size);
+        while (res.block_probability > 0.01)
+        {
+            queue_size += 1;
+            res = erlang_gen_system(channels[i], lambda, avg_time, number_events, 1.0, queue_size);
+        }
+
+        printf("Channel: %d, Queue Size: %d, Blk Prob: %f\n", channels[i], queue_size, res.block_probability);
+    }
 
     return 0;
-
-    //printf("Block Probability: %f\n", block_prob);
-    //printf("Avg delayed: %f\n", erlang_c_res.prob_pkt_delayed);
-    //printf("Avg delayed more than %f: %f\n", delay_threshold, erlang_c_res.prob_pkt_delayed_more_ax);
-    //printf("Average Delay: %f\n", erlang_c_res.avg_delay_all_pkt);
 }
 
 /*
-int main2(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 
     int lambdas[] = {2, 5, 10, 20};

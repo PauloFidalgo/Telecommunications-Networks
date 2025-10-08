@@ -1,0 +1,11 @@
+// Erlang C
+Estimated Probability of Delayed: 0.273180
+Estimated Probability of Delayed more than: 0.049410
+Average Delay: 0.005830
+Histogram: 4298,3779,3025,2589,2132,1810,1451,1273,1094,925,775,679,560,450,380,341,271,208,222,198,133,98,98,66,462
+
+// Gen Infinite
+Estimated Probability of Delayed: 0.273180
+Estimated Probability of Delayed more than: 0.049410
+Average Delay: 0.005830
+Histogram: 4298,3779,3025,2589,2132,1810,1451,1273,1094,925,775,679,560,450,380,341,271,208,222,198,133,98,98,66,462
