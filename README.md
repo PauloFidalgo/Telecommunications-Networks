@@ -26,6 +26,9 @@ A C implementation of Poisson process simulation using two different approaches:
 ├── scripts/                   # Python analysis tools
 │   ├── main.py                # Script to read outputs and generate plots
 │   └── pyproject.toml         # Python dependencies
+├── system/                    # Erlang Queue System
+│   ├── system.c               # Erlang B, Erlang C and Generic Erlang System
+│   └── system.h               # Erlang systems header
 ├── main.c                     # Entry point - runs simulations and saves results
 ├── Makefile                   # Build configuration
 └── README.md                  # This file
