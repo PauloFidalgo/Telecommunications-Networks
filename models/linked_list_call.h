@@ -1,7 +1,7 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
-
 #include <stdbool.h>
+
 typedef enum{
     GENERAL_PURPOSE,
     AREA_SPECIFIC,
@@ -34,8 +34,9 @@ typedef struct call_list
     struct call_list *next;
 } call_list;
 
-call_list *__remove(call_list *pointer);
-call_list *__add(call_list *pointer, int n_type, double n_time, call c);
+call_list *_remove(call_list *pointer);
+call_list *_add(call_list *pointer, int n_type, double n_time, call c);
+void _print(call_list *pointer);
 
 #define ARRIVAL 1
 #define DEPARTURE 2

@@ -85,5 +85,5 @@ int main() {
     config.general_purpose_ratio = 0.3;
 
 
-    start_call_center(config, 10000);
+    start_call_center(config, 10);
 }

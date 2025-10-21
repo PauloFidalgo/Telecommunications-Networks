@@ -3,15 +3,16 @@
 #include "linked_list_call.h"
 
 // Function that removes the first element of the linked list
-call_list *__remove(call_list *pointer)
+call_list *_remove(call_list *pointer)
 {
+    if (!pointer) return NULL;
     call_list *lp = (call_list *)pointer->next;
     free(pointer);
     return lp;
 }
 
 // Function that adds a new element to the list, sorting the list in chronological order
-call_list *__add(call_list *pointer, int n_type, double n_time, call c)
+call_list *_add(call_list *pointer, int n_type, double n_time, call c)
 {
     call_list *lp = pointer;
     call_list *p_aux, *p_next;
@@ -56,5 +57,19 @@ call_list *__add(call_list *pointer, int n_type, double n_time, call c)
         pointer->time = n_time;
         pointer->c = c;
         return lp;
+    }
+}
+
+void _print(call_list *pointer)
+{
+    if (pointer == NULL)
+        printf("List empty!\n");
+    else
+    {
+        while (pointer != NULL)
+        {
+            printf("Type=%d\tTime=%lf\n", pointer->type, pointer->time);
+            pointer = (call_list *)pointer->next;
+        }
     }
 }

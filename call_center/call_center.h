@@ -1,6 +1,13 @@
 #ifndef CALL_CENTER_H
 #define CALL_CENTER_H
 
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../poison/poison.h"
+#define M_PI 3.1415926535
+#include "../models/linked_list_call.h"
+
 // ------------------- INPUT MODELS ------------------- //
 typedef struct {
     float gen_min_duration_s;
