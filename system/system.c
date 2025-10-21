@@ -70,8 +70,8 @@ ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
             double tmp = next_poison(1.0 / lambda);
-            event_list = __add(event_list, ARRIVAL, event_list->time + tmp);
-        } else if (event_list->type == DEPARTURE) {
+    
+        } else if (event        event_list = __add(event_list, ARRIVAL, event_list->time + tmp);_list->type == DEPARTURE) {
             if (waiting_queue == NULL && busy > 0) {
                 busy--;
             } else if (waiting_queue != NULL) {

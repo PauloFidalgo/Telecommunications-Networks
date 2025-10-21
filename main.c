@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include "event/event-simulations.h"
 #include "system/system.h"
+#include "call_center/call_center.h"
+
 
 void write_result_to_file(Result res, char filename[], int lambda, int n_samples)
 {
@@ -74,6 +76,19 @@ void write_erlang_c_to_file(ErlangCstat res, char filename[])
     fclose(fptr);
 }
 
+int main() {
+    call_center_config config;
+    config.number_of_gen_opr = 2;
+    config.number_of_spec_opr = 2;
+    config.length_gen_queue = 2;
+    config.arrival_rate = 80;
+    config.general_purpose_ratio = 0.3;
+
+    general_purpose_config general_p_config;
+    general_p_config.gen_call_config
+}
+
+/*
 int main() {
     int lambda = 200;
     int number_events = 100000;
