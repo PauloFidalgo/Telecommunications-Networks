@@ -17,8 +17,8 @@ typedef struct {
 
 typedef struct {
     union {
-        struct generic_call_gen_only_config gen_call_gen_only_config;
-        struct generic_call_specific_config gen_call_specific_config;
+        generic_call_gen_only_config gen_call_gen_only_config;
+        generic_call_specific_config gen_call_specific_config;
     } gen_call_config;
 } general_purpose_config;
 
@@ -33,8 +33,8 @@ typedef struct {
     int length_gen_queue;
     float arrival_rate;
     float general_purpose_ratio;
-    struct general_purpose_config general_p_config;
-    struct area_specific_config area_spec_config;
+    general_purpose_config *general_p_config;
+    area_specific_config *area_spec_config;
 } call_center_config;
 
 // ------------------- OUTPUT MODELS ------------------- //
@@ -52,8 +52,8 @@ typedef struct {
 } area_specific_stats;
 
 typedef struct {
-    struct general_purpose_stats general_p_stats;
-    struct area_specific_stats area_spec_stats;
+    general_purpose_stats *general_p_stats;
+    area_specific_stats *area_spec_stats;
 } call_center_stats;
 
 void start_call_center(call_center_config config, int number_of_events);

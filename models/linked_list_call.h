@@ -1,10 +1,11 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
-enum CALL_TYPE {
+#include <stdbool.h>
+typedef enum{
     GENERAL_PURPOSE,
     AREA_SPECIFIC,
-};
+} CALL_TYPE;
 
 typedef struct general_call {
     bool is_generic_only;
@@ -20,7 +21,7 @@ typedef struct specific_call {
 } specific_call;
 
 typedef struct call {
-    enum CALL_TYPE type;
+    CALL_TYPE type;
     struct general_call gen_call;
     struct specific_call spec_call;
 } call;
