@@ -1,0 +1,9 @@
+metric,value
+prob_call_delayed,0.001000
+prob_call_lost,0.000000
+avg_delay,3.370392
+avg_abs_prediction_error,3.370392
+avg_rel_prediction_error,1.000000
+delay_distribution,predicted_waiting,actual_waiting,error,relative_error
+,0.000000,3.370392,-3.370392,-1.000000
+combined_avg_total_answer_time,69.945680

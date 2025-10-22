@@ -9,21 +9,14 @@ typedef enum{
 
 typedef struct general_call {
     bool is_generic_only;
-    float anwser_time;
-    bool blocked;
-    bool delayed;
-    float prediction_waiting;
-    float actual_waiting;
+    double anwser_time;
+    double prediction_waiting;
 } general_call;
 
-typedef struct specific_call {
-    float elapsed_time_after_gen;
-} specific_call;
 
 typedef struct call {
     CALL_TYPE type;
     struct general_call gen_call;
-    struct specific_call spec_call;
 } call;
 
 typedef struct call_list

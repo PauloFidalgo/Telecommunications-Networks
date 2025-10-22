@@ -20,19 +20,19 @@ typedef struct
 
 typedef struct 
 {
-    float prob_pkt_delayed;
-    float avg_delay_all_pkt;
+    double prob_pkt_delayed;
+    double avg_delay_all_pkt;
     int *histogram;
     int histogram_size;
-    float prob_pkt_delayed_more_ax;
+    double prob_pkt_delayed_more_ax;
 } ErlangCstat;
 
 typedef struct 
 {
-    float prob_pkt_delayed;
-    float avg_delay_all_pkt;
+    double prob_pkt_delayed;
+    double avg_delay_all_pkt;
     int *histogram;
     int histogram_size;
-    float prob_pkt_delayed_more_ax;
-    float block_probability;
+    double prob_pkt_delayed_more_ax;
+    double block_probability;
 } ErlangGenStat;

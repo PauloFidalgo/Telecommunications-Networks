@@ -5,10 +5,10 @@
 #include "../poison/poison.h"
 #include "../models/models.h"
 
-float erlang_b_system(int channels, int lambda, float avg_duration, int n_samples) {
+double erlang_b_system(int channels, int lambda, double avg_duration, int n_samples) {
     int busy = 0;
-    float blocked = 0.0;
-    float total = 0.0;
+    double blocked = 0.0;
+    double total = 0.0;
 
     list *event_list = NULL;
 
@@ -21,7 +21,7 @@ float erlang_b_system(int channels, int lambda, float avg_duration, int n_sample
                 blocked++;
             } else {
                 busy++;
-                float dep = next_poison(avg_duration);
+                double dep = next_poison(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
             total++;
@@ -38,11 +38,11 @@ float erlang_b_system(int channels, int lambda, float avg_duration, int n_sample
     return (blocked > 0) ? blocked / total : 0.0;
 }
 
-ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_samples, float delay_threshold) {
+ErlangCstat erlang_c_system(int channels, int lambda, double avg_duration, int n_samples, double delay_threshold) {
     int total = 0;
     int busy = 0;
     int higher_than_threshold = 0;
-    float total_waiting_time = 0.0;
+    double total_waiting_time = 0.0;
     int delayed = 0;
 
     list *event_list = NULL;
@@ -66,7 +66,7 @@ ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_
                 waiting_queue = __add_fifo(waiting_queue, ARRIVAL, event_list->time);
             } else {
                 busy++;
-                float dep = next_poison(avg_duration);
+                double dep = next_poison(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
             double tmp = next_poison(1.0 / lambda);
@@ -93,7 +93,7 @@ ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_
                     higher_than_threshold++;
                 }
 
-                float tmp = next_poison(avg_duration);
+                double tmp = next_poison(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + tmp);
                 waiting_queue = __remove(waiting_queue);
             }
@@ -102,20 +102,20 @@ ErlangCstat erlang_c_system(int channels, int lambda, float avg_duration, int n_
     }
 
     ErlangCstat result;
-    result.prob_pkt_delayed = (float)delayed / (float)total;
-    result.avg_delay_all_pkt = (delayed > 0) ? total_waiting_time / (float)delayed : 0.0;
-    result.prob_pkt_delayed_more_ax = (float)higher_than_threshold / (float)total;
+    result.prob_pkt_delayed = (double)delayed / (double)total;
+    result.avg_delay_all_pkt = (delayed > 0) ? total_waiting_time / (double)delayed : 0.0;
+    result.prob_pkt_delayed_more_ax = (double)higher_than_threshold / (double)total;
     result.histogram = histogram;
     result.histogram_size = n;
     
     return result;
 }
 
-ErlangGenStat erlang_gen_system(int channels, int lambda, float avg_duration, int n_samples, float delay_threshold, int queue_capacity) {
+ErlangGenStat erlang_gen_system(int channels, int lambda, double avg_duration, int n_samples, double delay_threshold, int queue_capacity) {
     int total = 0;
     int busy = 0;
     int higher_than_threshold = 0;
-    float total_waiting_time = 0.0;
+    double total_waiting_time = 0.0;
     int delayed = 0;
     int blocked = 0;
     int in_queue = 0;
@@ -148,7 +148,7 @@ ErlangGenStat erlang_gen_system(int channels, int lambda, float avg_duration, in
                 }
             } else {
                 busy++;
-                float dep = next_poison(avg_duration);
+                double dep = next_poison(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
             double tmp = next_poison(1.0 / lambda);
@@ -177,7 +177,7 @@ ErlangGenStat erlang_gen_system(int channels, int lambda, float avg_duration, in
                     higher_than_threshold++;
                 }
 
-                float tmp = next_poison(avg_duration);
+                double tmp = next_poison(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + tmp);
                 waiting_queue = __remove(waiting_queue);
                 in_queue--;
@@ -187,10 +187,10 @@ ErlangGenStat erlang_gen_system(int channels, int lambda, float avg_duration, in
     }
 
     ErlangGenStat result;
-    result.prob_pkt_delayed = (float)delayed / (float)total;
-    result.avg_delay_all_pkt = (delayed > 0) ? total_waiting_time / (float)delayed : 0.0;
-    result.prob_pkt_delayed_more_ax = (float)higher_than_threshold / (float)total;
-    result.block_probability = (float)blocked / (float)total;
+    result.prob_pkt_delayed = (double)delayed / (double)total;
+    result.avg_delay_all_pkt = (delayed > 0) ? total_waiting_time / (double)delayed : 0.0;
+    result.prob_pkt_delayed_more_ax = (double)higher_than_threshold / (double)total;
+    result.block_probability = (double)blocked / (double)total;
     result.histogram = histogram;
     result.histogram_size = n;
     

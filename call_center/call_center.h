@@ -6,40 +6,39 @@
 #include <stdlib.h>
 #include "../poison/poison.h"
 #define M_PI 3.1415926535
+#include "../models/delay_array.h"
 #include "../models/linked_list_call.h"
 
 // ------------------- INPUT MODELS ------------------- //
 typedef struct {
-    float gen_min_duration_s;
-    float gen_avg_duration_s;
-    float gen_max_duration_s;
+    double gen_min_duration_s;
+    double gen_avg_duration_s;
+    double gen_max_duration_s;
 } generic_call_gen_only_config;
 
 typedef struct {
-    float spec_min_duration_s;
-    float spec_avg_duration_s;
-    float spec_std_duration_s;
-    float spec_max_duration_s;
+    double spec_min_duration_s;
+    double spec_avg_duration_s;
+    double spec_std_duration_s;
+    double spec_max_duration_s;
 } generic_call_specific_config;
 
 typedef struct {
-    union {
-        generic_call_gen_only_config gen_call_gen_only_config;
-        generic_call_specific_config gen_call_specific_config;
-    } gen_call_config;
+    generic_call_gen_only_config *gen_call_gen_only_config;
+    generic_call_specific_config *gen_call_specific_config;
 } general_purpose_config;
 
 typedef struct {
-    float min_duration_s;
-    float avg_duration_s;
+    double min_duration_s;
+    double avg_duration_s;
 } area_specific_config;
 
 typedef struct {
     int number_of_gen_opr;
     int number_of_spec_opr;
     int length_gen_queue;
-    float arrival_rate;
-    float general_purpose_ratio;
+    double arrival_rate;
+    double general_purpose_ratio;
     general_purpose_config *general_p_config;
     area_specific_config *area_spec_config;
 } call_center_config;
@@ -47,22 +46,23 @@ typedef struct {
 // ------------------- OUTPUT MODELS ------------------- //
 
 typedef struct {
-    float prob_call_delayed;
-    float prob_call_lost;
-    float avg_delay_of_calls;
-    float avg_abs_prediction_error;
-    float avg_rel_prediction_error;
+    double prob_call_delayed;
+    double prob_call_lost;
+    double avg_delay_of_calls;
+    double avg_abs_prediction_error;
+    double avg_rel_prediction_error;
+    delay_array delays;
 } general_purpose_stats;
 
 typedef struct {
-    float avg_answ_time;
+    double avg_answ_time;
 } area_specific_stats;
 
 typedef struct {
-    general_purpose_stats *general_p_stats;
-    area_specific_stats *area_spec_stats;
+    general_purpose_stats general_p_stats;
+    area_specific_stats area_spec_stats;
 } call_center_stats;
 
-void start_call_center(call_center_config config, int number_of_events);
+call_center_stats start_call_center(call_center_config config, int number_of_events);
 
 #endif // CALL_CENTER_H
