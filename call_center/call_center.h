@@ -64,5 +64,6 @@ typedef struct {
 } call_center_stats;
 
 call_center_stats start_call_center(call_center_config config, int number_of_events);
+double box_muller();
 
 #endif // CALL_CENTER_H

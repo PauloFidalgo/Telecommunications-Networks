@@ -2,10 +2,17 @@
 #include <stdlib.h>
 #include <math.h>
 #include "call_center/call_center.h"
+#include "models/delay_array.h"
+
+bool is_valid_result(call_center_stats stats, double target_delayed, double target_lost, double target_avg_delay, double target_total_delay) {
+    return stats.general_p_stats.prob_call_delayed <= target_delayed &&
+            stats.general_p_stats.prob_call_lost <= target_lost &&
+            stats.general_p_stats.avg_delay_of_calls <= target_avg_delay && 
+            stats.area_spec_stats.avg_answ_time <= target_total_delay;
+}
 
 int main() {
     printf("Starting MSE-based optimization...\n");
-    printf("Searching 1-100 for each parameter (1,000,000 configs)\n\n");
     
     // Target values
     double target_delayed = 0.30;  
@@ -29,18 +36,18 @@ int main() {
     area_specific_config area_spec_config = {60.0, 150.0};
     config.area_spec_config = &area_spec_config;
     
-    int number_of_events = 10000;
+    int number_of_events = 100000;
     
     double best_mse = 1e9;
     int best_gen = 0, best_spec = 0, best_queue = 0;
     call_center_stats best_stats;
     
     int count = 0;
-    int total = 100 * 100 * 100;
+    int total = 10 * 10 * 10;
     
-    for (int gen_opr = 1; gen_opr <= 100; gen_opr++) {
-        for (int spec_opr = 1; spec_opr <= 100; spec_opr++) {
-            for (int queue_len = 1; queue_len <= 100; queue_len++) {
+    for (int gen_opr = 1; gen_opr <= 10; gen_opr++) {
+        for (int spec_opr = 1; spec_opr <= 10; spec_opr++) {
+            for (int queue_len = 1; queue_len <= 10; queue_len++) {
                 count++;
                 
                 config.number_of_gen_opr = gen_opr;
@@ -48,27 +55,37 @@ int main() {
                 config.length_gen_queue = queue_len;
                 
                 call_center_stats stats = start_call_center(config, number_of_events);
-                
-                double mse_delayed = pow(stats.general_p_stats.prob_call_delayed - target_delayed, 2);
-                double mse_lost = pow(stats.general_p_stats.prob_call_lost - target_lost, 2);
-                double mse_avg_delay = pow(stats.general_p_stats.avg_delay_of_calls - target_avg_delay, 2);
-                double mse_total_delay = pow(stats.area_spec_stats.avg_answ_time - target_total_delay, 2);
-                
-                double total_mse = mse_delayed + mse_lost + mse_avg_delay + mse_total_delay;
-                
-                if (total_mse < best_mse) {
-                    best_mse = total_mse;
-                    best_gen = gen_opr;
-                    best_spec = spec_opr;
-                    best_queue = queue_len;
-                    best_stats = stats;
+
+                if (is_valid_result(stats, target_delayed, target_lost, target_avg_delay, target_total_delay)) {
+                    double normalized_mse_delayed = pow((stats.general_p_stats.prob_call_delayed - target_delayed) / target_delayed, 2);
+                    double normalized_mse_lost = pow((stats.general_p_stats.prob_call_lost - target_lost) / target_lost, 2);
+                    double normalized_mse_avg_delay = pow((stats.general_p_stats.avg_delay_of_calls - target_avg_delay) / target_avg_delay, 2);
+                    double normalized_mse_total_delay = pow((stats.area_spec_stats.avg_answ_time - target_total_delay) / target_total_delay, 2);
                     
-                    printf("[%d/%d] NEW BEST: gen=%d, spec=%d, queue=%d | MSE=%.6f\n",
-                           count, total, gen_opr, spec_opr, queue_len, total_mse);
-                    printf("  Delayed: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_delayed, target_delayed);
-                    printf("  Lost: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_lost, target_lost);
-                    printf("  Avg delay: %.2f (target: %.2f)\n", stats.general_p_stats.avg_delay_of_calls, target_avg_delay);
-                    printf("  Total delay: %.2f (target: %.2f)\n\n", stats.area_spec_stats.avg_answ_time, target_total_delay);
+                    double total_mse = normalized_mse_delayed + normalized_mse_lost + normalized_mse_avg_delay + normalized_mse_total_delay;
+                    
+                    if (total_mse < best_mse) {
+                        // Free old best_stats delay array if it exists
+                        if (best_mse < 1e9) {
+                            free_delay_array(&best_stats.general_p_stats.delays);
+                        }
+                        
+                        best_mse = total_mse;
+                        best_gen = gen_opr;
+                        best_spec = spec_opr;
+                        best_queue = queue_len;
+                        best_stats = stats;
+                        
+                        printf("[%d/%d] NEW BEST: gen=%d, spec=%d, queue=%d | MSE=%.6f\n",
+                            count, total, gen_opr, spec_opr, queue_len, total_mse);
+                        printf("  Delayed: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_delayed, target_delayed);
+                        printf("  Lost: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_lost, target_lost);
+                        printf("  Avg delay: %.2f (target: %.2f)\n", stats.general_p_stats.avg_delay_of_calls, target_avg_delay);
+                        printf("  Total delay: %.2f (target: %.2f)\n\n", stats.area_spec_stats.avg_answ_time, target_total_delay);
+                    } else {
+                        // Free delay array for non-best stats
+                        free_delay_array(&stats.general_p_stats.delays);
+                    }
                 }
                 
                 if (count % 10000 == 0) {
