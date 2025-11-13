@@ -1,5 +1,5 @@
 /**
- * @file poison-event-driven.c
+ * @file poisson-event-driven.c
  * @author Paulo Fidalgo
  * @author Wagner Pedrosa
  * @brief This file implements event-driven Poisson process simulation
@@ -14,10 +14,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include "../models/linked-list.h"
-#include "../poison/poison.h"
+#include "../poisson/poisson.h"
 #include "../models/models.h"
 
-Result poison_event_driven_simulation(int lambda, int number_of_events)
+Result poisson_event_driven_simulation(int lambda, int number_of_events)
 {
     list *event_list = NULL;
 
@@ -34,7 +34,7 @@ Result poison_event_driven_simulation(int lambda, int number_of_events)
 
     for (int i = 0; i < number_of_events; i++)
     {
-        double c = next_poison(1.0 / lambda);
+        double c = next_poisson(1.0 / lambda);
         sum += c;
 
         int bin_index = (int)(c / delta);

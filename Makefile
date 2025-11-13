@@ -8,7 +8,7 @@ CFLAGS = -g -Wall -Wextra -std=c99 -O3 -I.
 LDFLAGS = -lm
 
 # Source files
-SOURCES = main.c event/poison-process.c event/poison-event-driven.c models/linked-list.c poison/poison.c system/system.c call_center/call_center.c models/linked_list_call.c models/delay_array.c
+SOURCES = main.c event/poisson-process.c event/poisson-event-driven.c models/linked-list.c poisson/poisson.c system/system.c call_center/call_center.c models/linked_list_call.c models/delay_array.c
 OBJECTS = $(SOURCES:.c=.o)
 
 all: main

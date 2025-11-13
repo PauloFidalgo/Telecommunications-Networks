@@ -1,5 +1,5 @@
 /**
- * @file poison.c
+ * @file poisson.c
  * @author Paulo Fidalgo
  * @author Wagner Pedrosa
  * @brief This file implements Poisson distribution random number generation
@@ -14,7 +14,7 @@
 #include <math.h>
 #include <time.h>
 
-double next_poison(double x)
+double next_poisson(double x)
 {
     double u;
     do

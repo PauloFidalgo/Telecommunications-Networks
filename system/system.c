@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "../models/linked-list.h"
-#include "../poison/poison.h"
+#include "../poisson/poisson.h"
 #include "../models/models.h"
 
 double erlang_b_system(int channels, int lambda, double avg_duration, int n_samples) {
@@ -21,11 +21,11 @@ double erlang_b_system(int channels, int lambda, double avg_duration, int n_samp
                 blocked++;
             } else {
                 busy++;
-                double dep = next_poison(avg_duration);
+                double dep = next_poisson(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
             total++;
-            double tmp = next_poison(1.0 / lambda);
+            double tmp = next_poisson(1.0 / lambda);
             event_list = __add(event_list, ARRIVAL, event_list->time + tmp);
         } else if (event_list->type == DEPARTURE) {
             if (busy > 0) {
@@ -66,10 +66,10 @@ ErlangCstat erlang_c_system(int channels, int lambda, double avg_duration, int n
                 waiting_queue = __add_fifo(waiting_queue, ARRIVAL, event_list->time);
             } else {
                 busy++;
-                double dep = next_poison(avg_duration);
+                double dep = next_poisson(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
-            double tmp = next_poison(1.0 / lambda);
+            double tmp = next_poisson(1.0 / lambda);
             event_list = __add(event_list, ARRIVAL, event_list->time + tmp); 
     
         } else if (event_list->type == DEPARTURE){
@@ -93,7 +93,7 @@ ErlangCstat erlang_c_system(int channels, int lambda, double avg_duration, int n
                     higher_than_threshold++;
                 }
 
-                double tmp = next_poison(avg_duration);
+                double tmp = next_poisson(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + tmp);
                 waiting_queue = __remove(waiting_queue);
             }
@@ -148,10 +148,10 @@ ErlangGenStat erlang_gen_system(int channels, int lambda, double avg_duration, i
                 }
             } else {
                 busy++;
-                double dep = next_poison(avg_duration);
+                double dep = next_poisson(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + dep);
             }
-            double tmp = next_poison(1.0 / lambda);
+            double tmp = next_poisson(1.0 / lambda);
             event_list = __add(event_list, ARRIVAL, event_list->time + tmp);
         } else if (event_list->type == DEPARTURE) {
             if (waiting_queue == NULL && busy > 0) {
@@ -177,7 +177,7 @@ ErlangGenStat erlang_gen_system(int channels, int lambda, double avg_duration, i
                     higher_than_threshold++;
                 }
 
-                double tmp = next_poison(avg_duration);
+                double tmp = next_poisson(avg_duration);
                 event_list = __add(event_list, DEPARTURE, event_list->time + tmp);
                 waiting_queue = __remove(waiting_queue);
                 in_queue--;

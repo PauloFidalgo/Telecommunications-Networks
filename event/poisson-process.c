@@ -1,5 +1,5 @@
 /**
- * @file poison-process.c
+ * @file poisson-process.c
  * @author Paulo Fidalgo
  * @author Wagner Pedrosa
  * @brief This file implements Poisson process simulation using direct sampling
@@ -14,13 +14,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include "../models/linked-list.h"
-#include "../poison/poison.h"
+#include "../poisson/poisson.h"
 #include "../models/models.h"
 
-// Constant that defines the step in each iteration for the Poison Process
+// Constant that defines the step in each iteration for the poisson Process
 #define DELTA_STEP 0.000001
 
-Result poison_process(int lambda, int number_of_events)
+Result poisson_process(int lambda, int number_of_events)
 {
     list *event_list = NULL;
 

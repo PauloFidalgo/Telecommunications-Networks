@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../poison/poison.h"
+#include "../poisson/poisson.h"
 #define M_PI 3.1415926535
 #include "../models/delay_array.h"
 #include "../models/linked_list_call.h"

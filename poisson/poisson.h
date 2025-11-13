@@ -1,5 +1,5 @@
 /**
- * @file poison.h
+ * @file poisson.h
  * @author Paulo Fidalgo
  * @author Wagner Pedrosa
  * @brief Header file for Poisson distribution random number generation
@@ -10,9 +10,9 @@
  *
  */
 
-#ifndef POISON_H
-#define POISON_H
+#ifndef poisson_H
+#define poisson_H
 
-double next_poison(double x);
+double next_poisson(double x);
 
-#endif // POISON_H
+#endif // poisson_H

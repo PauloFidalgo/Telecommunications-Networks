@@ -17,7 +17,7 @@ double box_muller() {
 }
 
 double generate_general_purpose_area_specific_duration(generic_call_specific_config config) {
-    double duration = 0;
+    double duration = 0.0;
 
     while (duration < config.spec_min_duration_s) {
         double rv = box_muller();
@@ -27,8 +27,20 @@ double generate_general_purpose_area_specific_duration(generic_call_specific_con
     return (duration > config.spec_max_duration_s) ? config.spec_max_duration_s : duration;
 }
 
+double generate_general_purpose_area_specific_duration_2(generic_call_specific_config config) {
+    double rv = box_muller();
+    double duration = rv * config.spec_std_duration_s + config.spec_avg_duration_s;
+
+    return (duration > config.spec_max_duration_s)
+        ? config.spec_max_duration_s
+        : (duration < config.spec_min_duration_s)
+            ? config.spec_min_duration_s
+            : duration;
+}
+
+
 double generate_exponential_duration(double min, double avg, bool has_max, double max) {
-    double duration = min + next_poison(avg);
+    double duration = min + next_poisson(avg);
 
     if (has_max) {
         return (duration > max) ? max : duration;
@@ -46,7 +58,7 @@ double generate_general_purpose_duration(general_purpose_config config, CALL_TYP
             true,
             config.gen_call_gen_only_config->gen_max_duration_s);
     case AREA_SPECIFIC:
-        return generate_general_purpose_area_specific_duration(*config.gen_call_specific_config);
+        return generate_general_purpose_area_specific_duration_2(*config.gen_call_specific_config);
     default:
         return 0.0;
     }
@@ -196,7 +208,7 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
             
             is_generic_only = is_general_call(config.general_purpose_ratio);
 
-            double tmp = next_poison(1.0 / config.arrival_rate);
+            double tmp = next_poisson(1.0 / config.arrival_rate);
 
             c.type = GENERAL_PURPOSE; // Generate new general purpose call 
             struct general_call gen_call = {is_generic_only, 0.0, 0.0, 0.0};
@@ -245,7 +257,6 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                     in_queue_general_call--;
                 } else {
                     general_opr_busy--;
-                    in_queue_general_call = 0;
                 }
                 if (!event_list->c.gen_call.is_generic_only) {
                     // I will "SIMULATE" an arrival of a Specific Call immediatly

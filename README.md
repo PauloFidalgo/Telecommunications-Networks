@@ -9,16 +9,16 @@ A C implementation of Poisson process simulation using two different approaches:
 
 ```
 ├── event/                     # Poisson process simulation implementations
-│   ├── poison-event-driven.c  # Event-driven simulation approach
-│   ├── poison-process.c       # Direct Poisson process sampling
+│   ├── poisson-event-driven.c  # Event-driven simulation approach
+│   ├── poisson-process.c       # Direct Poisson process sampling
 │   └── event-simulations.h    # Header file for simulation functions
 ├── models/                    # Data structures and utilities
 │   ├── linked-list.c          # Linked list implementation (provided by professor)
 │   ├── linked-list.h          # Linked list header
 │   └── models.h               # Result struct definition
-├── poison/                    # Poisson distribution generator
-│   ├── poison.c               # Random number generation for Poisson distribution
-│   └── poison.h               # Poisson generator header
+├── poisson/                    # Poisson distribution generator
+│   ├── poisson.c               # Random number generation for Poisson distribution
+│   └── poisson.h               # Poisson generator header
 ├── outputs/                   # Simulation results storage
 │   └── *.txt                  # Results files (average, theoretical average, histogram, lambda, events)
 ├── plots/                     # Generated plots directory
