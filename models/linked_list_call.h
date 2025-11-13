@@ -9,7 +9,7 @@ typedef enum{
 
 typedef struct general_call {
     bool is_generic_only;
-    double anwser_time;
+    double answer_time;
     double prediction_waiting;
     double original_arrival_time;  // Track when call first arrived to general system
 } general_call;
