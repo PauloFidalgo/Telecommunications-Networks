@@ -103,20 +103,24 @@ void run_optimization() {
                             count, total, gen_opr, spec_opr, queue_len, total_mse);
                         printf("  Delayed: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_delayed, TARGET_PROB_DELAYED);
                         printf("  Lost: %.4f (target: %.2f)\n", stats.general_p_stats.prob_call_lost, TARGET_PROB_LOST);
-                        printf("  Avg delay: %.2f (target: %.2f)\n", stats.general_p_stats.avg_delay_of_calls, TARGET_AVG_DELAY_S);
-                        printf("  Total delay: %.2f (target: %.2f)\n\n", stats.area_spec_stats.avg_answ_time, TARGET_TOTAL_DELAY_S);
+                        printf("  Avg delay in General System: %.2f (target: %.2f)\n", stats.general_p_stats.avg_delay_of_calls, TARGET_AVG_DELAY_S);
+                        printf("  Avg time between General Arrival and Specific Handling: %.2f (target: %.2f)\n\n", stats.area_spec_stats.avg_answ_time, TARGET_TOTAL_DELAY_S);
                     } else {
                         // Free delay array for non-best stats
                         free_delay_array(&stats.general_p_stats.delays);
                     }
                 }
                 
-                if (count % 100 == 0) {
-                    printf("Progress: %d/%d (%.1f%%)\n", count, total, 100.0 * count / total);
+                if (count % 10 == 0 || count == total) {
+                    printf("\rProgress: %d/%d (%.1f%%)    ", count, total, 100.0 * count / total);
+                    fflush(stdout);
                 }
+                
             }
         }
     }
+    
+    printf("\n");
     
     printf("\n========================================\n");
     printf("OPTIMIZATION COMPLETE\n");
@@ -130,8 +134,8 @@ void run_optimization() {
     printf("Performance:\n");
     printf("  Prob. delayed: %.4f (target: %.2f)\n", best_stats.general_p_stats.prob_call_delayed, TARGET_PROB_DELAYED);
     printf("  Prob. lost: %.4f (target: %.2f)\n", best_stats.general_p_stats.prob_call_lost, TARGET_PROB_LOST);
-    printf("  Avg delay: %.2f s (target: %.2f s)\n", best_stats.general_p_stats.avg_delay_of_calls, TARGET_AVG_DELAY_S);
-    printf("  Total delay: %.2f s (target: %.2f s)\n", best_stats.area_spec_stats.avg_answ_time, TARGET_TOTAL_DELAY_S);
+    printf("  Avg delay in General System: %.2f s (target: %.2f s)\n", best_stats.general_p_stats.avg_delay_of_calls, TARGET_AVG_DELAY_S);
+    printf("  Avg time between General Arrival and Specific Handling: %.2f s (target: %.2f s)\n", best_stats.area_spec_stats.avg_answ_time, TARGET_TOTAL_DELAY_S);
 }
 
 void run_simulation(int gen_opr, int spec_opr, int queue_len) {
@@ -171,14 +175,14 @@ void run_simulation(int gen_opr, int spec_opr, int queue_len) {
     printf("========================================\n\n");
     
     printf("General Purpose System:\n");
-    printf("  Prob. call delayed: %.4f\n", stats.general_p_stats.prob_call_delayed);
-    printf("  Prob. call lost: %.4f\n", stats.general_p_stats.prob_call_lost);
-    printf("  Avg delay of calls: %.2f s\n", stats.general_p_stats.avg_delay_of_calls);
+    printf("  Prob. General call delayed: %.4f\n", stats.general_p_stats.prob_call_delayed);
+    printf("  Prob. General call lost: %.4f\n", stats.general_p_stats.prob_call_lost);
+    printf("  Avg delay in General System: %.2f s\n", stats.general_p_stats.avg_delay_of_calls);
     printf("  Avg absolute prediction error: %.2f s\n", stats.general_p_stats.avg_abs_prediction_error);
     printf("  Avg relative prediction error: %.4f\n\n", stats.general_p_stats.avg_rel_prediction_error);
     
     printf("Area-Specific System:\n");
-    printf("  Avg answer time: %.2f s\n", stats.area_spec_stats.avg_answ_time);
+    printf("  Avg time between General Arrival and Specific Handling: %.2f s\n", stats.area_spec_stats.avg_answ_time);
     
     // Save delay data to CSV for analysis
     FILE *delay_file = fopen("outputs/call_center/delay_distribution.csv", "w");
@@ -229,10 +233,12 @@ void run_sensitivity_analysis(int gen_opr, int spec_opr, int queue_len) {
     
     int total_runs = 0;
     
+    int rate_count = 0;
+    int total_rates = (int)((MAX_ARRIVAL_RATE - MIN_ARRIVAL_RATE) / ARRIVAL_RATE_STEP) + 1;
+    
     for (double arrival_rate = MIN_ARRIVAL_RATE; arrival_rate <= MAX_ARRIVAL_RATE; arrival_rate += ARRIVAL_RATE_STEP) {
         config.arrival_rate = arrival_rate / 3600.0;  // Convert to calls/second
-        
-        printf("Testing arrival rate: %.0f calls/hour ", arrival_rate);
+        rate_count++;
         
         for (int rep = 0; rep < NUM_REPLICATIONS; rep++) {
             // Use different seed for each replication
@@ -250,9 +256,14 @@ void run_sensitivity_analysis(int gen_opr, int spec_opr, int queue_len) {
             
             free_delay_array(&stats.general_p_stats.delays);
             total_runs++;
+            
+            // Update progress on same line
+            printf("\rTesting arrival rate: %.0f calls/hour [%d/%d] (%.1f%% complete)    ", 
+                   arrival_rate, rate_count, total_rates, 100.0 * total_runs / (total_rates * NUM_REPLICATIONS));
+            fflush(stdout);
         }
-        printf("✓\n");
     }
+    printf("\n");  // New line after progress completes
     
     fclose(sensitivity_file);
     printf("\nSensitivity analysis complete!\n");

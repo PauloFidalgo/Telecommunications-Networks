@@ -9,10 +9,10 @@
 
 // Optimization search space
 #define MIN_GEN_OPR 1
-#define MAX_GEN_OPR 8
+#define MAX_GEN_OPR 10
 #define MIN_SPEC_OPR 1
-#define MAX_SPEC_OPR 8
+#define MAX_SPEC_OPR 10
 #define MIN_QUEUE_LEN 1
-#define MAX_QUEUE_LEN 10
+#define MAX_QUEUE_LEN 20
 
 #endif // OPTIMIZE_PARAM_H

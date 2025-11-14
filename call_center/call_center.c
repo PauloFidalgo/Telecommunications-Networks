@@ -27,17 +27,6 @@ double generate_general_purpose_area_specific_duration(generic_call_specific_con
     return (duration > config.spec_max_duration_s) ? config.spec_max_duration_s : duration;
 }
 
-double generate_general_purpose_area_specific_duration_2(generic_call_specific_config config) {
-    double rv = box_muller();
-    double duration = rv * config.spec_std_duration_s + config.spec_avg_duration_s;
-
-    return (duration > config.spec_max_duration_s)
-        ? config.spec_max_duration_s
-        : (duration < config.spec_min_duration_s)
-            ? config.spec_min_duration_s
-            : duration;
-}
-
 
 double generate_exponential_duration(double min, double avg, bool has_max, double max) {
     double duration = min + next_poisson(avg);
@@ -58,7 +47,7 @@ double generate_general_purpose_duration(general_purpose_config config, CALL_TYP
             true,
             config.gen_call_gen_only_config->gen_max_duration_s);
     case AREA_SPECIFIC:
-        return generate_general_purpose_area_specific_duration_2(*config.gen_call_specific_config);
+        return generate_general_purpose_area_specific_duration(*config.gen_call_specific_config);
     default:
         return 0.0;
     }
@@ -94,12 +83,9 @@ void handle_general_call_arrival(
 
         double duration = generate_general_purpose_duration(*config.general_p_config, type); // Generate duration based on call type
 
-        call new_call;
-        new_call.type = (*event_list)->c.type;
-        new_call.gen_call.is_generic_only = (*event_list)->c.gen_call.is_generic_only;
-        new_call.gen_call.prediction_waiting = 0.0;
+        call new_call = (*event_list)->c;
+        
         new_call.gen_call.answer_time = (*event_list)->time;
-        new_call.gen_call.original_arrival_time = (*event_list)->time;  
 
         *event_list = _add(*event_list, DEPARTURE, (*event_list)->time + duration, new_call);
 
@@ -108,13 +94,12 @@ void handle_general_call_arrival(
         if ((*in_queue_general_call) < config.length_gen_queue) {
             // Queue still has space
             (*delayed_general_call)++;
+
+            call new_call = (*event_list)->c;
             
-            call new_call;
-            new_call.type = (*event_list)->c.type;
-            new_call.gen_call.is_generic_only = (*event_list)->c.gen_call.is_generic_only;
-            new_call.gen_call.prediction_waiting = (*in_queue_general_call) * avg_gen_waiting_time;
             new_call.gen_call.answer_time = 0.0;
-            new_call.gen_call.original_arrival_time = (*event_list)->time; 
+            new_call.gen_call.prediction_waiting = (*in_queue_general_call) * avg_gen_waiting_time;
+            new_call.gen_call.original_arrival_time = (*event_list)->time;
 
             (*in_queue_general_call)++;
             (*general_waiting_queue) = _add(*general_waiting_queue, ARRIVAL, (*event_list)->time, new_call);
@@ -132,32 +117,38 @@ void handle_specific_call_arrival(
     call_list **event_list,
     call_list **specific_waiting_queue,
     double *total_elapsed_time_between_gen,
-    double *total_specific
+    double *total_specific,
+    call arriving_call,      
+    double current_time      
 ) {
     if ((*specific_opr_busy) < config.number_of_spec_opr) {
-        // It still has capacity to handle a new call
-        double duration = generate_specific_duration(*config.area_spec_config); // Generate the duration for this call
+        double duration = generate_specific_duration(*config.area_spec_config);
 
         call new_call;
-        new_call.type = (*event_list)->c.type;
-        new_call.gen_call = (*event_list)->c.gen_call;
-        // Calculate time from ORIGINAL arrival to general system until now (answered by area-specific)
-        (*total_elapsed_time_between_gen) += (*event_list)->time - (*event_list)->c.gen_call.original_arrival_time;
-        (*total_specific)++; // Increase the number of total_specific calls handled
+        new_call.type = AREA_SPECIFIC;
+        new_call.gen_call = arriving_call.gen_call;
 
-        (*specific_opr_busy)++; // Increase the number of specific agents busy
+        // Calculate time from ORIGINAL arrival to general system until now (answered by area-specific)
+        (*total_elapsed_time_between_gen) += current_time - arriving_call.gen_call.original_arrival_time;
+        (*total_specific)++;
+
+        (*specific_opr_busy)++;
         *event_list = _add(
             *event_list,
             DEPARTURE,
-            (*event_list)->time + duration,
-            new_call); // Add the departure of this call to the event list
+            current_time + duration,
+            new_call);
     } else {
         // If I dont have capacity, put in infinite waiting queue
+        call new_call;
+        new_call.type = AREA_SPECIFIC;
+        new_call.gen_call = arriving_call.gen_call;
+        
         *specific_waiting_queue = _add(
             *specific_waiting_queue,
             ARRIVAL,
-            (*event_list)->time,
-            (*event_list)->c);
+            current_time,
+            new_call);
     }
 }
 
@@ -212,12 +203,10 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
             double tmp = next_poisson(1.0 / config.arrival_rate);
 
             c.type = GENERAL_PURPOSE; // Generate new general purpose call 
-            struct general_call gen_call = {is_generic_only, 0.0, 0.0, 0.0};
+            struct general_call gen_call = {is_generic_only, 0.0, 0.0, event_list->time + tmp};
             c.gen_call = gen_call;
 
             event_list = _add(event_list, ARRIVAL, event_list->time + tmp, c);
-            
-
         } else if (event_list->type == DEPARTURE) {
             if (event_list->c.type == AREA_SPECIFIC) {
                 if (specific_waiting_queue != NULL) {
@@ -227,7 +216,9 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                     total_elapsed_time_between_gen += event_list->time - specific_waiting_queue->c.gen_call.original_arrival_time;
                     total_specific++;
 
-                    event_list = _add(event_list, DEPARTURE, event_list->time + duration, specific_waiting_queue->c);
+                    call new_call = specific_waiting_queue->c;
+
+                    event_list = _add(event_list, DEPARTURE, event_list->time + duration, new_call);
 
                     specific_waiting_queue = _remove(specific_waiting_queue);
                 } else {
@@ -235,6 +226,10 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                 }
             } else if (event_list->c.type == GENERAL_PURPOSE) {
                 // Process next call in queue if any
+                bool departing_call_needs_specific = !event_list->c.gen_call.is_generic_only;
+                call departing_call = event_list->c;
+                double current_time = event_list->time;
+
                 if (general_waiting_queue != NULL)
                 {
                     CALL_TYPE type = general_waiting_queue->c.gen_call.is_generic_only ? GENERAL_PURPOSE : AREA_SPECIFIC;
@@ -261,15 +256,16 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                 {
                     general_opr_busy--;
                 }
-                if (!event_list->c.gen_call.is_generic_only) {
-                    // I will "SIMULATE" an arrival of a Specific Call immediately
+                if (departing_call_needs_specific) {
                     handle_specific_call_arrival(
                         config,
                         &specific_opr_busy,
                         &event_list,
                         &specific_waiting_queue,
                         &total_elapsed_time_between_gen,
-                        &total_specific
+                        &total_specific,
+                        departing_call,
+                        current_time
                     );
                 }
             }

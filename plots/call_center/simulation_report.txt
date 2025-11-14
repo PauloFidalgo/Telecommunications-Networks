@@ -1,0 +1,39 @@
+======================================================================
+CALL CENTER SIMULATION - COMPREHENSIVE REPORT
+======================================================================
+
+1. DELAY DISTRIBUTION STATISTICS
+----------------------------------------------------------------------
+   Number of delayed calls: 15342
+   Mean delay: 25.73 s
+   Median delay: 20.72 s
+   Std deviation: 21.58 s
+   Min delay: 0.00 s
+   Max delay: 215.37 s
+
+   Percentiles:
+     25th: 9.50 s
+     50th: 20.72 s
+     75th: 36.37 s
+     90th: 53.72 s
+     95th: 65.72 s
+     99th: 98.63 s
+
+2. PREDICTION ERROR STATISTICS
+----------------------------------------------------------------------
+   Mean absolute error: 19.61 s
+   Std absolute error: 17.69 s
+   Mean relative error: 0.9176
+   Std relative error: 1.2360
+   Correlation (predicted vs actual): 0.4181
+
+3. SENSITIVITY ANALYSIS (Nominal rate = 80 calls/hour)
+----------------------------------------------------------------------
+   Number of replications: 30
+   Mean total delay: 68.57 s
+   Standard deviation: 0.14 s
+   90% CI: [68.53, 68.61] s
+   CI half-width: ±0.04 s
+   Relative half-width: 0.07%
+
+======================================================================
