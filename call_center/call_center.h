@@ -8,6 +8,10 @@
 #include "../models/delay_array.h"
 #include "../models/linked_list_call.h"
 
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#endif
+
 // ------------------- INPUT MODELS ------------------- //
 typedef struct {
     double gen_min_duration_s;

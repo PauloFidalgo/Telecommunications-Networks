@@ -44,15 +44,7 @@ void initialize_config(call_center_config *config,
 
 void run_optimization() {
     printf("Starting MSE-based optimization...\n");
-    
-    // Set random seed
-    if (RANDOM_SEED == 0) {
-        srand(time(NULL));
-        printf("Using time-based random seed\n");
-    } else {
-        srand(RANDOM_SEED);
-        printf("Using fixed random seed: %d\n", RANDOM_SEED);
-    }
+    printf("Using fixed random seed: %d (reset before each configuration)\n", RANDOM_SEED);
     
     call_center_config config;
     generic_call_gen_only_config gen_call_only;
@@ -74,6 +66,12 @@ void run_optimization() {
         for (int spec_opr = MIN_SPEC_OPR; spec_opr <= MAX_SPEC_OPR; spec_opr++) {
             for (int queue_len = MIN_QUEUE_LEN; queue_len <= MAX_QUEUE_LEN; queue_len++) {
                 count++;
+                
+                if (RANDOM_SEED == 0) {
+                    srand(time(NULL));
+                } else {
+                    srand(RANDOM_SEED);
+                }
                 
                 config.number_of_gen_opr = gen_opr;
                 config.number_of_spec_opr = spec_opr;

@@ -84,7 +84,7 @@ void handle_general_call_arrival(
     int *delayed_general_call,
     call_list **event_list,
     call_list **general_waiting_queue,
-    double avg_gen_call_duration
+    double avg_gen_waiting_time
 ) {
     if ((*general_opr_busy) < config.number_of_gen_opr) {
         // I have capacity lets process it
@@ -112,8 +112,7 @@ void handle_general_call_arrival(
             call new_call;
             new_call.type = (*event_list)->c.type;
             new_call.gen_call.is_generic_only = (*event_list)->c.gen_call.is_generic_only;
-            // new_call.gen_call.prediction_waiting = (*in_queue_general_call) * avg_gen_call_duration;
-            new_call.gen_call.prediction_waiting = ((*in_queue_general_call) / (double)config.number_of_gen_opr) * avg_gen_call_duration;
+            new_call.gen_call.prediction_waiting = (*in_queue_general_call) * avg_gen_waiting_time;
             new_call.gen_call.answer_time = 0.0;
             new_call.gen_call.original_arrival_time = (*event_list)->time; 
 
@@ -169,8 +168,8 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
     int blocked_general_call = 0;
     int delayed_general_call = 0;
     int general_arrivals = 0;  
-    double avg_gen_call_duration = 0.0;
-    int current_gen_call = 0;
+    double avg_gen_waiting_time = 0.0;
+    int current_gen_waiting_calls = 0;
 
     double total_elapsed_time_between_gen = 0.0;
     double total_specific = 0.0;
@@ -205,7 +204,7 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                 &delayed_general_call,
                 &event_list,
                 &general_waiting_queue,
-                avg_gen_call_duration
+                avg_gen_waiting_time
             );
             
             is_generic_only = is_general_call(config.general_purpose_ratio);
@@ -236,8 +235,6 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
                 }
             } else if (event_list->c.type == GENERAL_PURPOSE) {
                 // Process next call in queue if any
-                double gen_call_duration = event_list->time - event_list->c.gen_call.answer_time;
-                avg_gen_call_duration = running_avg(++current_gen_call, avg_gen_call_duration, gen_call_duration);
                 if (general_waiting_queue != NULL)
                 {
                     CALL_TYPE type = general_waiting_queue->c.gen_call.is_generic_only ? GENERAL_PURPOSE : AREA_SPECIFIC;
@@ -246,6 +243,8 @@ call_center_stats start_call_center(call_center_config config, int number_of_eve
 
                     // Calculate actual waiting time
                     double waiting_time = event_list->time - general_waiting_queue->time;
+
+                    avg_gen_waiting_time = running_avg(++current_gen_waiting_calls, avg_gen_waiting_time, waiting_time);
 
                     // Store prediction vs actual for statistics
                     delay d = {general_waiting_queue->c.gen_call.prediction_waiting, waiting_time};

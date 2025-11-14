@@ -22,7 +22,7 @@
 #define AREA_SPEC_AVG_DURATION_S 150.0
 
 // Simulation parameters
-#define NUMBER_OF_EVENTS 10000
+#define NUMBER_OF_EVENTS 100000
 #define RANDOM_SEED 42  // Fixed seed for reproducibility (use 0 for time-based random seed)
 
 // Sensitivity analysis parameters
